@@ -1,0 +1,339 @@
+<html>
+<head>
+<title>TicTacToe</title>
+<style>
+body {
+    overflow: hidden;
+}
+
+#right {
+    width: 30vw;
+    height: 100vh;
+    position: absolute;
+    right: 0;
+    top: 0;
+    background-color: #170d29;
+}
+
+#gameTable {
+    width: 40vw;
+    height: 40vw;
+    position: absolute;
+    left: 15vw;
+    bottom: calc(50vh - 20vw);
+    transition: width .2s, height .2s,left .2s,bottom .2s;
+    transition-timing-function: ease-in;
+}
+
+    #gameTable:hover {
+        width: 45vw;
+        height: 45vw;
+        left: 12.5vw;
+        bottom: calc(50vh - 22.5vw);
+    }
+
+    #gameTable tr {
+        width: 33.33%;
+    }
+
+        #gameTable tr td:hover {
+            cursor: pointer;
+        }
+
+#reset {
+    height: 7vh;
+    width: 28vw;
+    position: absolute;
+    right: 1vw;
+    top: 2vh;
+    border-radius: 5px;
+    border: none;
+    font-size: xx-large;
+    font-family: "Adobe Heiti Std";
+	line-height: 55px; 
+    background-color: #33244d;
+    color: white;
+	transition:border-radius .5s, background-color .5s,color .5s;
+}
+
+    #reset:focus {
+        border: none;
+        outline: none;
+    }
+	
+	#reset:hover{
+		cursor:pointer;
+		border-radius:25px;
+		color:black;
+		background-color:#7863c9;
+	}
+
+.valuePanel{
+}
+
+#X{
+    width: 80%;
+    height: 80%;
+    position: relative;
+	left:10%;
+	background-color:black;
+	clip-path: polygon(30% 0, 50% 30%, 70% 0, 100% 0, 70% 50%, 100% 100%, 70% 100%, 50% 70%, 30% 100%, 0 100%, 30% 50%, 0 0);
+}
+
+#O{
+    width: 80%;
+    height: 80%;
+    position: relative;
+	left:10%;
+	background-color:black;
+	border-radius:100%;
+}
+
+#hole{
+	position:relative;
+	width:60%;
+	height:60%;
+	top:20%;
+	left:20%;
+	background-color:white;
+	border-radius:100%;
+}
+
+#playerTurn{
+	width:80%;
+	height:3vh;
+	color:white;
+	font-family:Arial;
+	font-size:1.7em;
+	font-weight:bolder;
+	position:absolute;
+	top: 10vh;
+	left:1vw;
+}
+
+#verticalLine{
+	width:92%;
+	height:.5vh;
+	position:absolute;
+	top:50%;
+	z-index:1;
+	background-color:red;
+	border-radius:25px;
+	transform:rotate(90deg);
+}
+
+#horizontalLine{
+	width:92%;
+	height:.5vh;
+	position:absolute;
+	left:4%;
+	z-index:1;
+	background-color:red;
+	border-radius:25px;
+}
+
+#diagonalLine{
+	width:110%;
+	height:.5vh;
+	position:absolute;
+	left:-5%;
+	top:50%;
+	z-index:1;
+	background-color:red;
+}
+
+#scoresTab{
+	width:80%;
+	height:80%;
+	left:10%;
+	bottom:5%;
+	position:absolute;
+	background-color:white;
+	overflow-y:auto;
+}
+
+#scoreTable{
+	width:100%;
+}
+
+	#scoreTable th,#scoreTable td{
+		width:50%;
+	}
+
+</style>
+</head>
+<body>
+        <div id="right">
+			<input id="reset" type="button" value="RESET" onclick="ResetGame();" />
+			<label id="playerTurn"> Current player: X</label>
+			<div id="scoresTab">
+				<table id="scoreTable" border="1">
+					<tr>
+						<th colspan="2">LOCAL SCORE HISTORY</th>
+					</tr>
+					<tr>
+						<th>INFO</th>
+						<th>DATE-TIME</th>
+					</tr>
+				</table>
+			</div>
+        </div>
+        <table border="1" id="gameTable">
+            <tr>
+                <td class="valuePanel" id="00"></td>
+                <td class="valuePanel" id="01"></td>
+                <td class="valuePanel" id="02"></td>
+            </tr>
+            <tr>
+                <td class="valuePanel" id="10"></td>
+                <td class="valuePanel" id="11"></td>
+                <td class="valuePanel" id="12"></td>
+            </tr>
+            <tr>
+                <td class="valuePanel" id="20"></td>
+                <td class="valuePanel" id="21"></td>
+                <td class="valuePanel" id="22"></td>
+            </tr>
+        </table>
+		<script>
+		var turn = 0;
+		var first = 0; //window.confirm("Does X start?") ? 0:1;
+		var finished = false;
+		var matrix = [];
+		for(var i=0; i<3; i++) {
+			matrix[i] = [];
+			for(var j=0; j<3; j++) {
+				matrix[i][j] = undefined;
+			}
+		}
+		document.getElementById("playerTurn").innerText = "Current player: " + ((turn + first) % 2 == 0? "X" : "O");
+		for(var i = 0; i < document.getElementsByClassName("valuePanel").length;i++)
+			document.getElementsByClassName("valuePanel")[i].addEventListener("click",(e) => ManageClick(e));
+		
+		function ManageClick(e){
+			if(finished) return;
+			if(e.target.className!="valuePanel")
+				return;
+			var x = (e.target.id)%10 + 1
+			,y = parseInt((e.target.id)/10 + 1);
+			var tile = e.target;
+			if(tile.childElementCount == 0){
+				const mark = document.createElement("div");
+				mark.id = ((turn + first) % 2 == 0) ? "X" : "O";
+				if((turn + first) % 2 != 0){
+					const hole = document.createElement("div");
+					hole.id = "hole";
+					mark.appendChild(hole);
+					}
+				tile.appendChild(mark);
+				matrix[y-1][x-1] = new String(mark.id);
+				turn++;
+				document.getElementById("playerTurn").innerText = "Current player: " + ((turn + first) % 2 == 0? "X" : "O");
+				if(turn >= 5){
+					CheckCombos();
+					if(turn == 9 && !playerTurn.innerText.includes("WON")){
+						playerTurn.innerText = "DRAW";
+						const tdInfo = document.createElement("td");
+						tdInfo.innerText = "Draw";
+						const tdDate = document.createElement("td");
+						var date = new Date();
+						var currentDate = date.getMonth() + "/"
+										+ (date.getMonth() + 1) + "/"
+										+ date.getFullYear() + " - "
+										+ date.getHours() + ":"
+										+ date.getMinutes() + ":"
+										+ date.getSeconds();
+						tdDate.innerText = currentDate;
+						const tr = document.createElement("tr");
+						tr.appendChild(tdInfo);
+						tr.appendChild(tdDate);
+						document.getElementById("scoreTable").appendChild(tr);
+					}
+				}               
+			}                   
+		}
+		
+		function CheckCombos(){
+			for(var i = 0;i<3;i++){
+				if(matrix[i][0] != undefined && matrix[i][1] != undefined && matrix[i][2] != undefined)
+					if((matrix[i][0].includes("X") && matrix[i][1].includes("X") && matrix[i][2].includes("X")) || 
+					   (matrix[i][0].includes("O") && matrix[i][1].includes("O") && matrix[i][2].includes("O"))){
+							ShowWinner(matrix[i][0],"H",i);
+							return;
+					   }
+				if(matrix[0][i] != undefined && matrix[1][i] != undefined && matrix[2][i] != undefined)
+					if((matrix[0][i].includes("X") && matrix[1][i].includes("X") && matrix[2][i].includes("X")) || 
+					   (matrix[0][i].includes("O") && matrix[1][i].includes("O") && matrix[2][i].includes("O"))){
+							ShowWinner(matrix[0][i],"V",i);
+							return;
+					   }
+			}
+			if(matrix[0][0] != undefined && matrix[1][1] != undefined && matrix[2][2] != undefined)
+				if(matrix[0][0].includes("X") && matrix[1][1].includes("X") && matrix[2][2].includes("X") ||
+				   matrix[0][0].includes("O") && matrix[1][1].includes("O") && matrix[2][2].includes("O"))
+						ShowWinner(matrix[0][0],"MD",1);
+			if(matrix[0][2] != undefined && matrix[1][1] != undefined && matrix[2][0] != undefined)
+				if(matrix[0][2].includes("X") && matrix[1][1].includes("X") && matrix[2][0].includes("X") ||
+				   matrix[0][2].includes("O") && matrix[1][1].includes("O") && matrix[2][0].includes("O"))
+						ShowWinner(matrix[2][0],"SD",1);
+		}
+		
+		function ShowWinner(winner,path,position){
+			finished = true;
+			const parent = (path == "H"? document.getElementById(position == 0? "01" : (position*10 + 1)) 
+			: (path == "V"? document.getElementById(position == 0? "01" : (position*10 + 1)) : document.getElementById("11")));
+			if(path == "H"){
+				const line = document.createElement("div");
+				line.id = "horizontalLine";
+				line.setAttribute("style","top:" + (16.5 + position * 33) +"%;"); //16.5 49.5 82.5
+				parent.appendChild(line);
+			}
+			else if(path == "V"){
+				const line = document.createElement("div");
+				line.id = "verticalLine";
+				line.setAttribute("style","left:" + (-29 + position * 33) +"%;"); //-29% 4% 37%
+				parent.appendChild(line);
+			}
+			else {
+				const line = document.createElement("div");
+				line.id = "diagonalLine";
+				line.setAttribute("style","transform:rotate(" + (path == "MD" ? 45 : -45) + "deg);");
+				parent.appendChild(line);
+			}
+			playerTurn.innerText = winner +" WON!!!";
+			const tdInfo = document.createElement("td");
+			tdInfo.innerText = winner + " won in round " + parseInt((turn+1)/2);
+			const tdDate = document.createElement("td");
+			var date = new Date();
+			var currentDate = date.getMonth() + "/"
+							+ (date.getMonth() + 1) + "/"
+							+ date.getFullYear() + " - "
+							+ date.getHours() + ":"
+							+ date.getMinutes() + ":"
+							+ date.getSeconds();
+			tdDate.innerText = currentDate;
+			const tr = document.createElement("tr");
+			tr.appendChild(tdInfo);
+			tr.appendChild(tdDate);
+			document.getElementById("scoreTable").appendChild(tr);
+		}
+		
+		function ResetGame(){
+			for(var i=0;i<document.getElementsByClassName("valuePanel").length;i++)
+				document.getElementsByClassName("valuePanel")[i].innerHTML = "";
+			turn = 0;
+			first = window.confirm("Does X start?") ? 0:1;
+			finished = false;
+			matrix = [];
+			for(var i=0; i<3; i++) {
+				matrix[i] = [];
+				for(var j=0; j<3; j++) {
+					matrix[i][j] = undefined;
+				}
+			}
+			document.getElementById("playerTurn").innerText = "Current player: " + ((turn + first) % 2 == 0? "X" : "O");
+		}
+		
+		</script>
+</body>
+</html>
